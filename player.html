@@ -21,7 +21,15 @@ window.onYouTubeIframeAPIReady = function () {
         playerVars: { autoplay: 1, controls: 0, playsinline: 1, rel: 0, origin: location.origin },
         events: {
             onReady: function () { avisar("pronto"); player.playVideo(); },
-            onStateChange: function (e) { avisar("estado:" + (ESTADOS[e.data] || e.data)); },
+            onStateChange: function (e) {
+                var extra = "";
+                if (e.data === -1) {
+                    // "não começou" sem erro: o motivo fica nos dados do vídeo
+                    var d = player.getVideoData() || {};
+                    extra = " (tocavel=" + d.isPlayable + " motivo=" + d.errorCode + ")";
+                }
+                avisar("estado:" + (ESTADOS[e.data] || e.data) + extra);
+            },
             onError: function (e) { avisar("erro:" + e.data); }
         }
     });
