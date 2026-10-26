@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ir</title>
+<script>
+// Trampolim: o app da TV abre esta página, que passa direto para o player do YouTube.
+// Assim o YouTube recebe este site como origem (sem isso dá erro 153), e o player
+// fica sendo filho direto do app, que então consegue controlar o vídeo e o som.
+var p = new URLSearchParams(location.search);
+location.replace("https://www.youtube.com/embed/" + encodeURIComponent(p.get("v") || "") +
+    "?autoplay=1&controls=0&rel=0&playsinline=1&enablejsapi=1");
+</script>
+</head>
+<body style="background:#000"></body>
+</html>
