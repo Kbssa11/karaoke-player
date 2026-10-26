@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Player</title>
+<style>html, body, #alvo { margin: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }</style>
+</head>
+<body>
+<div id="alvo"></div>
+<script>
+// Esta página mora num site de verdade, então o YouTube sabe de onde vem o pedido.
+// Ela conversa com o app da TV por mensagens: avisa o que acontece e aceita comandos.
+var avisar = function (t) { parent.postMessage("karaoke:" + t, "*"); };
+var player;
+var ESTADOS = { "-1": "nao-comecou", 0: "acabou", 1: "tocando", 2: "pausado", 3: "carregando", 5: "pronto" };
+
+window.onYouTubeIframeAPIReady = function () {
+    var v = new URLSearchParams(location.search).get("v");
+    player = new YT.Player("alvo", {
+        videoId: v,
+        playerVars: { autoplay: 1, controls: 0, playsinline: 1, rel: 0, origin: location.origin },
+        events: {
+            onReady: function () { avisar("pronto"); player.playVideo(); },
+            onStateChange: function (e) { avisar("estado:" + (ESTADOS[e.data] || e.data)); },
+            onError: function (e) { avisar("erro:" + e.data); }
+        }
+    });
+};
+
+window.addEventListener("message", function (e) {
+    if (!player || typeof e.data !== "string") return;
+    var p = e.data.split(":");
+    if (p[0] === "tocar") player.playVideo();
+    else if (p[0] === "pausar") player.pauseVideo();
+    else if (p[0] === "fim") player.seekTo(player.getDuration() - 3, true);
+    else if (p[0] === "carregar") player.loadVideoById(p[1]);
+});
+
+var s = document.createElement("script");
+s.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(s);
+</script>
+</body>
+</html>
