@@ -20,7 +20,7 @@ window.onYouTubeIframeAPIReady = function () {
         videoId: v,
         playerVars: { autoplay: 1, controls: 0, playsinline: 1, rel: 0, origin: location.origin },
         events: {
-            onReady: function () { avisar("pronto"); player.playVideo(); },
+            onReady: function () { avisar("pronto"); comecar(); },
             onStateChange: function (e) {
                 var extra = "";
                 if (e.data === -1) {
@@ -35,13 +35,32 @@ window.onYouTubeIframeAPIReady = function () {
     });
 };
 
+// Começar com som pode ser barrado (regra de autoplay). Se em 1,5 s não tocou,
+// começa sem som e tenta devolver o som logo depois.
+function comecar() {
+    player.playVideo();
+    setTimeout(function () {
+        if (player.getPlayerState() === 1) return;
+        avisar("autoplay barrado; tentando sem som");
+        player.mute();
+        player.playVideo();
+        setTimeout(function () {
+            player.unMute();
+            setTimeout(function () {
+                avisar("depois de religar o som: estado=" + player.getPlayerState() + " mudo=" + player.isMuted());
+            }, 1500);
+        }, 1500);
+    }, 1500);
+}
+
 window.addEventListener("message", function (e) {
     if (!player || typeof e.data !== "string") return;
     var p = e.data.split(":");
     if (p[0] === "tocar") player.playVideo();
     else if (p[0] === "pausar") player.pauseVideo();
     else if (p[0] === "fim") player.seekTo(player.getDuration() - 3, true);
-    else if (p[0] === "carregar") player.loadVideoById(p[1]);
+    else if (p[0] === "carregar") { player.loadVideoById(p[1]); setTimeout(comecar, 500); }
+    else if (p[0] === "som") player.unMute();
 });
 
 var s = document.createElement("script");
